@@ -1,0 +1,14 @@
+if TARGET_LEC_IMX8MP
+
+config SYS_BOARD
+	default "lec-imx8mp"
+
+config SYS_VENDOR
+	default "adlink"
+
+config SYS_CONFIG_NAME
+	default "lec-imx8mp"
+
+source "board/adlink/common/Kconfig"
+
+endif
