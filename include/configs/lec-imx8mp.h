@@ -61,9 +61,9 @@
 
 #endif
 
-#if defined(DDR_2GB) || defined(DDR_2GK)
+#if defined(CONFIG_LPDDR4_2GB) || defined(CONFIG_LPDDR4_2GK)
 #define PHYS_SDRAM_SIZE_ENV		"PHYS_SDRAM_SIZE_ENV=2G\0"	/* 2 GB */
-#elif defined(DDR_4GB)
+#elif defined(CONFIG_LPDDR4_4GB)
 #define PHYS_SDRAM_SIZE_ENV		"PHYS_SDRAM_SIZE_ENV=4G\0"	/* 4 GB */
 #endif
 
@@ -202,9 +202,9 @@
 /* Totally 6GB DDR */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define PHYS_SDRAM			0x40000000
-#if defined(DDR_2GB) || defined(DDR_2GK)
+#if defined(CONFIG_LPDDR4_2GB) || defined(CONFIG_LPDDR4_2GK)
 #define PHYS_SDRAM_SIZE			0x80000000	/* 2 GB */
-#elif defined(DDR_4GB)
+#elif defined(CONFIG_LPDDR4_4GB)
 #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
 #else
 #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
@@ -213,9 +213,9 @@
 #ifdef CONFIG_TARGET_IMX8MP_DDR4_EVK
 #define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
 #else
-#if defined(DDR_2GB) || defined(DDR_2GK)
+#if defined(CONFIG_LPDDR4_2GB) || defined(CONFIG_LPDDR4_2GK)
 #define PHYS_SDRAM_2_SIZE		0x00000000	/* 0 GB */
-#elif defined(DDR_4GB)
+#elif defined(CONFIG_LPDDR4_4GB)
 #define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
 #else
 #define PHYS_SDRAM_2_SIZE		0xC0000000	/* 3 GB */
