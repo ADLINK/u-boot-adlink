@@ -118,6 +118,13 @@ config TARGET_IMX8MP_EVK
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
 
+config TARGET_LEC_IMX8MP
+	bool "Adlink lec-imx8mp LPDDR4 board"
+	select IMX8MP
+	select SUPPORT_SPL
+	select IMX8M_LPDDR4
+	select CONFIG_IMX_DDRSIZE
+
 config TARGET_IMX8MP_DDR4_EVK
 	bool "imx8mp DDR4 EVK board"
 	select IMX8MP
@@ -164,5 +171,6 @@ source "board/freescale/imx8mm_val/Kconfig"
 source "board/freescale/imx8mn_evk/Kconfig"
 source "board/freescale/imx8mp_evk/Kconfig"
 source "board/toradex/verdin-imx8mm/Kconfig"
+source "board/adlink/lec-imx8mp/Kconfig"
 
 endif
