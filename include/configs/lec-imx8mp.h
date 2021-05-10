@@ -65,6 +65,8 @@
 #define PHYS_SDRAM_SIZE_ENV		"PHYS_SDRAM_SIZE_ENV=2G\0"	/* 2 GB */
 #elif defined(CONFIG_LPDDR4_4GB)
 #define PHYS_SDRAM_SIZE_ENV		"PHYS_SDRAM_SIZE_ENV=4G\0"	/* 4 GB */
+#elif defined(CONFIG_LPDDR4_8GB)
+#define PHYS_SDRAM_SIZE_ENV		"PHYS_SDRAM_SIZE_ENV=8G\0"	/* 8 GB */
 #endif
 
 #define JAILHOUSE_ENV \
@@ -199,12 +201,14 @@
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		SZ_32M
 
-/* Totally 6GB DDR */
+/* Totally 2/4/8 (default 6GB) DDR */
 #define CONFIG_SYS_SDRAM_BASE		0x40000000
 #define PHYS_SDRAM			0x40000000
 #if defined(CONFIG_LPDDR4_2GB) || defined(CONFIG_LPDDR4_2GK)
 #define PHYS_SDRAM_SIZE			0x80000000	/* 2 GB */
 #elif defined(CONFIG_LPDDR4_4GB)
+#define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
+#elif defined(CONFIG_LPDDR4_8GB)
 #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
 #else
 #define PHYS_SDRAM_SIZE			0xC0000000	/* 3 GB */
@@ -217,6 +221,8 @@
 #define PHYS_SDRAM_2_SIZE		0x00000000	/* 0 GB */
 #elif defined(CONFIG_LPDDR4_4GB)
 #define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
+#elif defined(CONFIG_LPDDR4_8GB)
+#define PHYS_SDRAM_2_SIZE		0x140000000	/* 5 GB */
 #else
 #define PHYS_SDRAM_2_SIZE		0xC0000000	/* 3 GB */
 #endif
