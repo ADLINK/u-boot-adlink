@@ -26,6 +26,9 @@ choice
 	config LPDDR4_4GB
 		bool "LPDDR4_4GB"
 
+	config LPDDR4_8GB
+		bool "LPDDR4_8GB"
+
 endchoice
 
 source "board/adlink/common/Kconfig"
