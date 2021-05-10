@@ -29,6 +29,13 @@
 		reg = <0x0 0x40000000 0 0xC0000000>,
 		      <0x1 0x00000000 0 0x40000000>;
 	};
+#elif defined(CONFIG_LPDDR4_8GB)
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0x0 0x40000000 0 0xC0000000>,
+		      <0x1 0x00000000 0 0xFFFFFFFF>,
+		      <0x2 0x00000000 0 0x40000000>;
+	};
 #else
 	memory@40000000 {
 		device_type = "memory";
