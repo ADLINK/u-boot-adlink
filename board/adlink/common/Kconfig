@@ -1,0 +1,9 @@
+if !ARCH_IMX8M && !ARCH_IMX8
+
+config USB_TCPC
+	bool "USB Typec port controller simple driver"
+	default n
+	help
+	  Enable USB type-c port controller (TCPC) driver
+
+endif
