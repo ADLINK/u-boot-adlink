@@ -18,7 +18,9 @@
 #include <spl.h>
 #include <asm/mach-imx/dma.h>
 #include <power/pmic.h>
+#ifdef CONFIG_USB_TCPC
 #include "../common/tcpc.h"
+#endif
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <mmc.h>
