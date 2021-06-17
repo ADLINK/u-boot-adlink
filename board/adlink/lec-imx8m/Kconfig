@@ -1,27 +1,36 @@
-if TARGET_IMX8MQ_EVK
+if TARGET_LEC_IMX8MQ
 
 config SYS_BOARD
-	default "imx8mq_evk"
-
-config SYS_VENDOR
-	default "freescale"
-
-config SYS_CONFIG_NAME
-	default "imx8mq_evk"
-
-source "board/freescale/common/Kconfig"
-
-endif
-
-if TARGET_LEC_IMX8M
-
-config SYS_BOARD
-	default "lec_imx8m"
+	default "lec-imx8m"
 
 config SYS_VENDOR
 	default "adlink"
 
 config SYS_CONFIG_NAME
-	default "lec_imx8m"
+	default "lec-imx8m"
+
+config CONFIG_IMX_DDRSIZE
+	bool "Define lec-imx8m DDR Size"
+	depends on TARGET_LEC_IMX8MQ || TARGET_LEC_IMX8MP
+
+choice
+	prompt "Select a lec-imx8m DDR Size"
+	depends on CONFIG_IMX_DDRSIZE
+
+	config DDR3L_1GB
+		bool "DDR3L_1GB"
+
+	config DDR3L_2GB
+		bool "DDR3L_2GB"
+
+	config DDR3L_4GB
+		bool "DDR3L_4GB"
+
+	config DDR3L_4GB_MT
+		bool "DDR3L_4GB_MT"
+
+endchoice
+
+source "board/adlink/common/Kconfig"
 
 endif
