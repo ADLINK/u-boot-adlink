@@ -15,6 +15,8 @@
 #include <asm/mach-imx/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
 #include <asm/arch/clock.h>
+#include <linux/arm-smccc.h>
+#include <linux/delay.h>
 #include <spl.h>
 #include <asm/mach-imx/dma.h>
 #include <power/pmic.h>
@@ -63,7 +65,7 @@ int board_early_init_f(void)
 }
 
 #ifdef CONFIG_OF_BOARD_SETUP
-int ft_board_setup(void *blob, bd_t *bd)
+int ft_board_setup(void *blob, struct bd_info *bd)
 {
 #ifdef CONFIG_IMX8M_DRAM_INLINE_ECC
 #ifdef CONFIG_TARGET_IMX8MP_DDR4_EVK
@@ -536,8 +538,8 @@ int board_init(void)
 #endif
 
 	/* enable the dispmix & mipi phy power domain */
-	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, DISPMIX, true, 0);
-	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, MIPI, true, 0);
+	arm_smccc_smc(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, DISPMIX, true, 0, 0, 0, 0, NULL);
+	arm_smccc_smc(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, MIPI, true, 0, 0, 0, 0, NULL);
 
 	return 0;
 }
