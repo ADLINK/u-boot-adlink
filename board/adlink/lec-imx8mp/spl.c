@@ -7,6 +7,7 @@
 #include <common.h>
 #include <cpu_func.h>
 #include <hang.h>
+#include <init.h>
 #include <spl.h>
 #include <asm/io.h>
 #include <errno.h>
@@ -24,6 +25,7 @@
 #include <fsl_esdhc_imx.h>
 #include <mmc.h>
 #include <asm/arch/ddr.h>
+#include <linux/delay.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -111,7 +113,7 @@ static struct fsl_esdhc_cfg usdhc_cfg[2] = {
 	{USDHC3_BASE_ADDR, 0, 8},
 };
 
-int board_mmc_init(bd_t *bis)
+int board_mmc_init(struct bd_info *bis)
 {
 	int i, ret;
 	/*
@@ -171,14 +173,12 @@ int board_mmc_getcd(struct mmc *mmc)
 	return 1;
 }
 
-#ifdef CONFIG_POWER
-#define I2C_PMIC	0
 int power_init_board(void)
 {
 	struct pmic *p;
 	int ret;
 
-	ret = power_pca9450b_init(I2C_PMIC);
+	ret = power_pca9450_init(0);
 	if (ret)
 		printf("power init failed");
 	p = pmic_get("PCA9450");
@@ -214,7 +214,6 @@ int power_init_board(void)
 
 	return 0;
 }
-#endif
 
 void spl_board_init(void)
 {
@@ -275,11 +274,3 @@ void board_init_f(ulong dummy)
 	board_init_r(NULL, 0);
 }
 
-int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	puts("resetting ...\n");
-
-	reset_cpu(WDOG1_BASE_ADDR);
-
-	return 0;
-}
