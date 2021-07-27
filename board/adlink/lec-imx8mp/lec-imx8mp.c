@@ -511,6 +511,10 @@ int board_init(void)
 {
 #ifdef CONFIG_USB_TCPC
 	setup_typec();
+
+       /* Enable USB power default */
+       imx8m_usb_power(0, true);
+       imx8m_usb_power(1, true);
 #endif
 
 #ifdef CONFIG_FEC_MXC
