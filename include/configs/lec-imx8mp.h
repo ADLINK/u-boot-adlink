@@ -166,6 +166,7 @@
 
 #define CONFIG_BOOTCOMMAND \
 	   "mmc dev ${mmcdev}; if mmc rescan; then " \
+			"fatload mmc 1 ${loadaddr} EFI/BOOT/bootaa64.efi; fatload mmc 1 ${fdt_addr} lec-imx8mp.dtb; fdt addr ${fdt_addr}; bootefi ${loadaddr} ${fdt_addr}; " \
 		   "if run loadbootscript; then " \
 			   "run bootscript; " \
 		   "else " \
