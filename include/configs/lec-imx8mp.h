@@ -11,6 +11,7 @@
 
 #include "imx_env.h"
 
+#define CONFIG_SYS_BOOTM_LEN		(32 * SZ_1M)
 
 #define CONFIG_SPL_MAX_SIZE		(152 * 1024)
 #define CONFIG_SYS_MONITOR_LEN		(512 * 1024)
@@ -69,6 +70,16 @@
 #define PHYS_SDRAM_SIZE_ENV		"PHYS_SDRAM_SIZE_ENV=8G\0"	/* 8 GB */
 #endif
 
+#ifdef CONFIG_DISTRO_DEFAULTS
+#define BOOT_TARGET_DEVICES(func) \
+	func(MMC, mmc, 1) \
+	func(MMC, mmc, 2)
+
+#include <config_distro_bootcmd.h>
+#else
+#define BOOTENV
+#endif
+
 #define JAILHOUSE_ENV \
 	"jh_clk= \0 " \
 	"jh_mmcboot=setenv fdt_file imx8mp-evk-root.dtb;" \
@@ -111,6 +122,7 @@
 #define CONFIG_EXTRA_ENV_SETTINGS		\
 	CONFIG_MFG_ENV_SETTINGS \
 	JAILHOUSE_ENV \
+	BOOTENV \
 	PHYS_SDRAM_SIZE_ENV \
 	"script=boot.scr\0" \
 	"image=Image\0" \
@@ -162,11 +174,10 @@
 			"else " \
 				"echo WARN: Cannot load the DT; " \
 			"fi; " \
-		"fi;\0"
-
-#define CONFIG_BOOTCOMMAND \
-	   "mmc dev ${mmcdev}; if mmc rescan; then " \
-			"fatload mmc 1 ${loadaddr} EFI/BOOT/bootaa64.efi; fatload mmc 1 ${fdt_addr} lec-imx8mp.dtb; fdt addr ${fdt_addr}; bootefi ${loadaddr} ${fdt_addr}; " \
+		"fi;\0" \
+	"bsp_bootcmd=echo Running BSP bootcmd ...; " \
+		"mmc dev ${mmcdev}; if mmc rescan; then " \
+		   "fatload mmc 1 ${loadaddr} EFI/BOOT/bootaa64.efi; fatload mmc 1 ${fdt_addr} lec-imx8mp.dtb; fdt addr ${fdt_addr}; bootefi ${loadaddr} ${fdt_addr}; " \
 		   "if run loadbootscript; then " \
 			   "run bootscript; " \
 		   "else " \
@@ -281,8 +292,6 @@
 
 /* USB configs */
 #ifndef CONFIG_SPL_BUILD
-#define CONFIG_CMD_USB
-#define CONFIG_USB_STORAGE
 
 #define CONFIG_CMD_USB_MASS_STORAGE
 #define CONFIG_USB_GADGET_MASS_STORAGE
