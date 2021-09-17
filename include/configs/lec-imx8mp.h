@@ -72,8 +72,8 @@
 
 #ifdef CONFIG_DISTRO_DEFAULTS
 #define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 1) \
-	func(MMC, mmc, 2)
+	func(MMC, mmc, 2) \
+	func(MMC, mmc, 1)
 
 #include <config_distro_bootcmd.h>
 #else
@@ -132,6 +132,7 @@
 	"fdt_high=0xffffffffffffffff\0"		\
 	"boot_fit=no\0" \
 	"fdt_file=" CONFIG_DEFAULT_FDT_FILE "\0" \
+	"scriptaddr=0x42000000\0"		\
 	"initrd_addr=0x43800000\0"		\
 	"initrd_high=0xffffffffffffffff\0" \
 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
