@@ -17,7 +17,9 @@
 #include <asm/mach-imx/mxc_i2c.h>
 #include <i2c.h>
 #include <asm/io.h>
+#ifdef CONFIG_USB_TCPC
 #include "../common/tcpc.h"
+#endif
 #include <usb.h>
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
@@ -95,9 +97,40 @@ static int setup_fec(void)
 	struct iomuxc_gpr_base_regs *gpr =
 		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;
 
-	/* Use 125M anatop REF_CLK1 for ENET1, not from external */
-	clrsetbits_le32(&gpr->gpr[1], 0x2000, 0);
+	struct udevice *bus;
+	struct udevice *i2c_dev = NULL;
+	int ret;
+	unsigned char i2c_data[64];
 
+	setup_iomux_fec();
+
+	ret = uclass_get_device_by_seq(UCLASS_I2C, 0x5, &bus);
+	if (ret) {
+		printf("%s: Can't find bus\n", __func__);
+		return -EINVAL;
+	}
+
+	ret = dm_i2c_probe(bus, 0x70, 0, &i2c_dev);//GPIO expander address
+	if (ret) {
+		printf("%s: Can't find device id 0x70\n", __func__);
+		return -EINVAL;
+	}
+
+	//write 0x0 register 0
+	//Write 0xE register 0
+	dm_i2c_reg_write(i2c_dev, 0x0, 0);
+	dm_i2c_reg_write(i2c_dev, 0xe, 0);
+
+	ret = dm_i2c_read(i2c_dev, 0x0, i2c_data, 0x2A);
+	if (ret) {
+		printf("%s dm_i2c_read failed, err %d\n", __func__, ret);
+		return -EINVAL;
+	}
+
+	/* Enable RGMII TX clk output */
+	setbits_le32(&gpr->gpr[1], BIT(22));
+
+	//return set_clk_enet(ENET_125MHZ);
 	return 0;
 }
 
