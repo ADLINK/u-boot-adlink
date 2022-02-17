@@ -1,9 +1,6 @@
  // SPDX-License-Identifier: GPL-2.0+
  /*
-  * Copyright 2021 TechNexion Ltd.
-  *
-  * Author: Richard Hu <richard.hu@technexion.com>
-  *
+  * Copyright 2022 ADLINK
   */
 
 #include <common.h>
@@ -24,7 +21,11 @@
 #include <asm/arch/ddr.h>
 
 #include <power/pmic.h>
+#ifdef CONFIG_POWER_PCA9450
+#include <power/pca9450.h>
+#else
 #include <power/bd71837.h>
+#endif
 #include <asm/mach-imx/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
 #include <fsl_esdhc_imx.h>
@@ -54,19 +55,15 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	}
 }
 
+#define VER_DET_GPIO_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_DSE1)
+
 static iomux_v3_cfg_t const ver_det_pads[] = {
-	IMX8MM_PAD_SAI5_RXD0_GPIO3_IO21 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID0 */
-	IMX8MM_PAD_SAI5_RXD1_GPIO3_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID1 */
-	IMX8MM_PAD_SAI5_RXD2_GPIO3_IO23 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID2 */
-	IMX8MM_PAD_SAI5_RXD3_GPIO3_IO24 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID3 */
-	IMX8MM_PAD_SAI5_RXC_GPIO3_IO20 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID4 */
-	IMX8MM_PAD_SAI5_RXFS_GPIO3_IO19 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID5 */
-	IMX8MM_PAD_SAI5_MCLK_GPIO3_IO25 | MUX_PAD_CTRL(NO_PAD_CTRL),	/* BOARD ID6 */
+	IMX8MM_PAD_NAND_DATA00_GPIO3_IO6 | MUX_PAD_CTRL(VER_DET_GPIO_PAD_CTRL), /* BOARD ID0 */
+	IMX8MM_PAD_NAND_DATA02_GPIO3_IO8 | MUX_PAD_CTRL(VER_DET_GPIO_PAD_CTRL), /* BOARD ID1 */
 };
 
-#define BOARD_ID0		IMX_GPIO_NR(3, 21)
-#define BOARD_ID1		IMX_GPIO_NR(3, 22)
-#define BOARD_ID2		IMX_GPIO_NR(3, 23)
+#define BOARD_ID0		IMX_GPIO_NR(3, 6)
+#define BOARD_ID1		IMX_GPIO_NR(3, 8)
 
 static void setup_iomux_ver_det(void)
 {
@@ -76,18 +73,15 @@ static void setup_iomux_ver_det(void)
 	gpio_direction_input(BOARD_ID0);
 	gpio_request(BOARD_ID1, "board_id1");
 	gpio_direction_input(BOARD_ID1);
-	gpio_request(BOARD_ID2, "board_id2");
-	gpio_direction_input(BOARD_ID2);
 }
 
 /***********************************************
-BOARD_ID0    BOARD_ID1   BOARD_ID2
-   0            0            1       4G LPDDR4
-   1            1            1       3G LPDDR4
-   1            1            0       2G LPDDR4
-   1            0            1       1G LPDDR4
+BOARD_ID0    BOARD_ID1
+   1            0       8G LPDDR4
+   1            1       4G LPDDR4
+   0            1       2G LPDDR4
+   0            0       1G LPDDR4
 ************************************************/
-
 
 void spl_dram_init(void)
 {
@@ -104,17 +98,12 @@ void spl_dram_init(void)
 		ddr_init(&dram_timing_4gb);
 		writel(0x4, MCU_BOOTROM_BASE_ADDR);
 	}
-	else if (gpio_get_value(BOARD_ID0) && gpio_get_value(BOARD_ID1) && gpio_get_value(BOARD_ID2)) {
-		puts("dram_init: LPDDR4 3GB\n");
-		ddr_init(&dram_timing_3gb);
-		writel(0x3, MCU_BOOTROM_BASE_ADDR);
-	}
-	else if (gpio_get_value(BOARD_ID0) && gpio_get_value(BOARD_ID1) && !gpio_get_value(BOARD_ID2)) {
+	else if (!gpio_get_value(BOARD_ID0) && gpio_get_value(BOARD_ID1)) {
 		puts("dram_init: LPDDR4: 2GB\n");
 		ddr_init(&dram_timing_2gb);
 		writel(0x2, MCU_BOOTROM_BASE_ADDR);
 	}
-	else if (gpio_get_value(BOARD_ID0) && !gpio_get_value(BOARD_ID1) && gpio_get_value(BOARD_ID2)) {
+	else if (!gpio_get_value(BOARD_ID0) && !gpio_get_value(BOARD_ID1)) {
 		puts("dram_init: LPDDR4: 1GB\n");
 		ddr_init(&dram_timing_1gb);
 		writel(0x1, MCU_BOOTROM_BASE_ADDR);
@@ -124,7 +113,7 @@ void spl_dram_init(void)
 }
 
 #define I2C_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)
-#define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
+#define PC	MUX_PAD_CTRL(I2C_PAD_CTRL)
 struct i2c_pads_info i2c_pad_info1 = {
 	.scl = {
 		.i2c_mode = IMX8MM_PAD_I2C1_SCL_I2C1_SCL | PC,
@@ -168,6 +157,10 @@ static iomux_v3_cfg_t const usdhc2_pads[] = {
 	IMX8MM_PAD_I2C4_SCL_GPIO5_IO20 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 };
 
+/*
+ * The evk board uses DAT3 to detect CD card plugin,
+ * in u-boot we mux the pin to GPIO when doing board_mmc_getcd.
+ */
 static iomux_v3_cfg_t const usdhc2_cd_pad =
 	IMX8MM_PAD_SD2_CD_B_GPIO2_IO12 | MUX_PAD_CTRL(USDHC_GPIO_PAD_CTRL);
 
@@ -241,7 +234,42 @@ int board_mmc_getcd(struct mmc *mmc)
 
 #ifdef CONFIG_POWER
 #define I2C_PMIC	0
+#ifdef CONFIG_POWER_PCA9450
+int power_init_board(void)
+{
+	struct pmic *p;
+	int ret;
 
+	ret = power_pca9450_init(I2C_PMIC);
+	if (ret)
+		printf("power init failed");
+	p = pmic_get("PCA9450");
+	pmic_probe(p);
+
+	/* BUCKxOUT_DVS0/1 control BUCK123 output */
+	pmic_reg_write(p, PCA9450_BUCK123_DVS, 0x29);
+
+	/* Buck 1 DVS control through PMIC_STBY_REQ */
+	pmic_reg_write(p, PCA9450_BUCK1CTRL, 0x59);
+
+	/* Set DVS1 to 0.8v for suspend */
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS1, 0x10);
+
+	/* increase VDD_DRAM to 0.95v for 3Ghz DDR */
+	pmic_reg_write(p, PCA9450_BUCK3OUT_DVS0, 0x1C);
+
+	/* VDD_DRAM needs off in suspend, set B1_ENMODE=10 (ON by PMIC_ON_REQ = H && PMIC_STBY_REQ = L) */
+	pmic_reg_write(p, PCA9450_BUCK3CTRL, 0x4a);
+
+	/* set VDD_SNVS_0V8 from default 0.85V */
+	pmic_reg_write(p, PCA9450_LDO2CTRL, 0xC0);
+
+	/* set WDOG_B_CFG to cold reset */
+	pmic_reg_write(p, PCA9450_RESET_CTRL, 0xA1);
+
+	return 0;
+}
+#else
 int power_init_board(void)
 {
 	struct pmic *p;
@@ -266,11 +294,17 @@ int power_init_board(void)
 	/* increase VDD_DRAM to 0.975v for 3Ghz DDR */
 	pmic_reg_write(p, BD718XX_1ST_NODVS_BUCK_VOLT, 0x83);
 
+#ifndef CONFIG_IMX8M_LPDDR4
+	/* increase NVCC_DRAM_1V2 to 1.2v for DDR4 */
+	pmic_reg_write(p, BD718XX_4TH_NODVS_BUCK_VOLT, 0x28);
+#endif
+
 	/* lock the PMIC regs */
 	pmic_reg_write(p, BD718XX_REGLOCK, 0x11);
 
 	return 0;
 }
+#endif /* CONFIG_POWER_PCA9450 */
 #endif
 
 void spl_board_init(void)
@@ -290,8 +324,6 @@ void spl_board_init(void)
 #endif
 	puts("Normal Boot\n");
 }
-
-
 
 #ifdef CONFIG_SPL_LOAD_FIT
 #define PCA9555_23_I2C_ADDR 0x23
@@ -349,12 +381,14 @@ void board_init_f(ulong dummy)
 
 	enable_tzc380();
 
+#ifdef CONFIG_POWER
 	/* Adjust pmic voltage to 1.0V for 800M */
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
 
 	setup_i2c(2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info2);
 
 	power_init_board();
+#endif
 
 	/* DDR initialization */
 	spl_dram_init();
