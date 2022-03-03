@@ -883,7 +883,8 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mn-ddr4-ab2.dtb \
 	imx8mn-ddr3l-ab2.dtb \
 	imx8mn-ab2.dtb \
-	uboot-lec8mp.dtb
+	uboot-lec8mp.dtb \
+	uboot-lec8mm.dtb
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb \
 	imxrt1020-evk.dtb
