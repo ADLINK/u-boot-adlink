@@ -33,6 +33,8 @@
 #include <mmc.h>
 #include <linux/delay.h>
 
+#include "lpddr4_timing.h"
+
 DECLARE_GLOBAL_DATA_PTR;
 
 int spl_board_boot_device(enum boot_device boot_dev_spl)
@@ -93,7 +95,7 @@ void spl_dram_init(void)
 	U-boot would extract this information in dram_init().
 	**************************************************/
 
-	if (!gpio_get_value(BOARD_ID0) && !gpio_get_value(BOARD_ID1) && gpio_get_value(BOARD_ID2)) {
+	if (!gpio_get_value(BOARD_ID0) && !gpio_get_value(BOARD_ID1)) {
 		puts("dram_init: LPDDR4 4GB\n");
 		ddr_init(&dram_timing_4gb);
 		writel(0x4, MCU_BOOTROM_BASE_ADDR);
@@ -102,11 +104,6 @@ void spl_dram_init(void)
 		puts("dram_init: LPDDR4: 2GB\n");
 		ddr_init(&dram_timing_2gb);
 		writel(0x2, MCU_BOOTROM_BASE_ADDR);
-	}
-	else if (!gpio_get_value(BOARD_ID0) && !gpio_get_value(BOARD_ID1)) {
-		puts("dram_init: LPDDR4: 1GB\n");
-		ddr_init(&dram_timing_1gb);
-		writel(0x1, MCU_BOOTROM_BASE_ADDR);
 	}
 	else
 		puts("Unknown DDR type!!!\n");

@@ -7,6 +7,7 @@
 #include <init.h>
 #include <miiphy.h>
 #include <netdev.h>
+#include <linux/delay.h>
 #include <asm/global_data.h>
 #include <asm/mach-imx/iomux-v3.h>
 #include <asm-generic/gpio.h>
@@ -17,9 +18,7 @@
 #include <asm/mach-imx/mxc_i2c.h>
 #include <i2c.h>
 #include <asm/io.h>
-#ifdef CONFIG_USB_TCPC
 #include "../common/tcpc.h"
-#endif
 #include <usb.h>
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
@@ -92,6 +91,24 @@ int board_early_init_f(void)
 }
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
+
+#define FEC_RST_PAD IMX_GPIO_NR(4, 4)
+static iomux_v3_cfg_t const fec1_rst_pads[] = {
+	IMX8MM_PAD_SAI1_RXD0_GPIO4_IO2 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
+static void setup_iomux_fec(void)
+{
+	imx_iomux_v3_setup_multiple_pads(fec1_rst_pads,
+					 ARRAY_SIZE(fec1_rst_pads));
+
+	gpio_request(FEC_RST_PAD, "fec1_rst");
+	gpio_direction_output(FEC_RST_PAD, 0);
+	mdelay(15);
+	gpio_direction_output(FEC_RST_PAD, 1);
+	mdelay(100);
+}
+
 static int setup_fec(void)
 {
 	struct iomuxc_gpr_base_regs *gpr =
