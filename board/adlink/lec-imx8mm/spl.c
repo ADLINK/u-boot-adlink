@@ -132,6 +132,10 @@ struct i2c_pads_info i2c_pad_info1 = {
 	},
 };
 
+/******************************
+ *  emmc SDIO3
+ *  sdcard SDIO2
+ ******************************/
 #define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 12)
 #define USDHC2_PWR_GPIO IMX_GPIO_NR(5, 20)
 
@@ -165,12 +169,15 @@ static iomux_v3_cfg_t const usdhc2_pads[] = {
 /*
  * The evk board uses DAT3 to detect CD card plugin,
  * in u-boot we mux the pin to GPIO when doing board_mmc_getcd.
+ * on SMARC SOM, GPIO1_IO15_SD2_CD# (default) / SD2_nCD (not connected)
+ * are selected using a 0ohm to route to SDIO_CD# smarc interface.
+ * i.e. IMX8MM_PAD_GPIO1_IO15_GPIO1_IO15 or IMX8MM_PAD_SD2_CD_B_GPIO2_IO12
  */
 static iomux_v3_cfg_t const usdhc2_cd_pad =
-	IMX8MM_PAD_SD2_CD_B_GPIO2_IO12 | MUX_PAD_CTRL(USDHC_GPIO_PAD_CTRL);
+	IMX8MM_PAD_GPIO1_IO15_GPIO1_IO15 | MUX_PAD_CTRL(USDHC_GPIO_PAD_CTRL);
 
 static struct fsl_esdhc_cfg usdhc_cfg[2] = {
-	{USDHC2_BASE_ADDR, 0, 1},
+	{USDHC2_BASE_ADDR, 0, 4},
 	{USDHC3_BASE_ADDR, 0, 8},
 };
 
@@ -185,7 +192,7 @@ int board_mmc_init(struct bd_info *bis)
 	 */
 	for (i = 0; i < CONFIG_SYS_FSL_USDHC_NUM; i++) {
 		switch (i) {
-		case 0:
+		case 0: /* SDCard */
 			init_clk_usdhc(1);
 			usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
 			imx_iomux_v3_setup_multiple_pads(
@@ -195,7 +202,7 @@ int board_mmc_init(struct bd_info *bis)
 			udelay(500);
 			gpio_direction_output(USDHC2_PWR_GPIO, 1);
 			break;
-		case 1:
+		case 1: /* eMMC */
 			init_clk_usdhc(2);
 			usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC3_CLK);
 			imx_iomux_v3_setup_multiple_pads(
