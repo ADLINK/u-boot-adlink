@@ -57,37 +57,39 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 	}
 }
 
-#define VER_DET_GPIO_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_DSE1)
+/*********************************************
+ * LPDDR4
+ *********************************************/
+/* sku detection using gpio */
+#define SKU_DET_GPIO_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_DSE1)
 
-static iomux_v3_cfg_t const ver_det_pads[] = {
-	IMX8MM_PAD_NAND_DATA00_GPIO3_IO6 | MUX_PAD_CTRL(VER_DET_GPIO_PAD_CTRL), /* BOARD ID0 */
-	IMX8MM_PAD_NAND_DATA02_GPIO3_IO8 | MUX_PAD_CTRL(VER_DET_GPIO_PAD_CTRL), /* BOARD ID1 */
+static iomux_v3_cfg_t const sku_det_pads[] = {
+	IMX8MM_PAD_NAND_DATA00_GPIO3_IO6 | MUX_PAD_CTRL(SKU_DET_GPIO_PAD_CTRL), /* SKU_CONFIG1 */
+	IMX8MM_PAD_NAND_DATA03_GPIO3_IO9 | MUX_PAD_CTRL(SKU_DET_GPIO_PAD_CTRL), /* SKU_CONFIG2 */
 };
 
-#define BOARD_ID0		IMX_GPIO_NR(3, 6)
-#define BOARD_ID1		IMX_GPIO_NR(3, 8)
-
-static void setup_iomux_ver_det(void)
+#define SKU_CONFIG1		IMX_GPIO_NR(3, 6)
+#define SKU_CONFIG2		IMX_GPIO_NR(3, 9)
+static void setup_iomux_sku_det(void)
 {
-	imx_iomux_v3_setup_multiple_pads(ver_det_pads, ARRAY_SIZE(ver_det_pads));
+	imx_iomux_v3_setup_multiple_pads(sku_det_pads, ARRAY_SIZE(sku_det_pads));
 
-	gpio_request(BOARD_ID0, "board_id0");
-	gpio_direction_input(BOARD_ID0);
-	gpio_request(BOARD_ID1, "board_id1");
-	gpio_direction_input(BOARD_ID1);
+	gpio_request(SKU_CONFIG1, "sku_config1");
+	gpio_direction_input(SKU_CONFIG1);
+	gpio_request(SKU_CONFIG2, "sku_config2");
+	gpio_direction_input(SKU_CONFIG2);
 }
-
 /***********************************************
-BOARD_ID0    BOARD_ID1
-   1            0       8G LPDDR4
-   1            1       4G LPDDR4
-   0            1       2G LPDDR4
-   0            0       1G LPDDR4
+BOARD_ID0    BOARD_ID1      DRAM
+    1            1        4G LPDDR4
+    1            0        2G LPDDR4
+    0            1        1G LPDDR4
+    0            0        512MB LPDDR4
 ************************************************/
 
 void spl_dram_init(void)
 {
-	setup_iomux_ver_det();
+	setup_iomux_sku_det();
 
 	/*************************************************
 	ToDo: It's a dirty workaround to store the
@@ -95,17 +97,23 @@ void spl_dram_init(void)
 	U-boot would extract this information in dram_init().
 	**************************************************/
 
-	if (!gpio_get_value(BOARD_ID0) && !gpio_get_value(BOARD_ID1)) {
+	if (gpio_get_value(SKU_CONFIG1) && gpio_get_value(SKU_CONFIG2)) {
 		puts("dram_init: LPDDR4 4GB\n");
 		ddr_init(&dram_timing_4gb);
-		writel(0x4, MCU_BOOTROM_BASE_ADDR);
-	}
-	else if (!gpio_get_value(BOARD_ID0) && gpio_get_value(BOARD_ID1)) {
+		writel(0x8, MCU_BOOTROM_BASE_ADDR);
+	} else if (gpio_get_value(SKU_CONFIG1) && !gpio_get_value(SKU_CONFIG2)) {
 		puts("dram_init: LPDDR4: 2GB\n");
 		ddr_init(&dram_timing_2gb);
+		writel(0x4, MCU_BOOTROM_BASE_ADDR);
+	} else if (!gpio_get_value(SKU_CONFIG1) && gpio_get_value(SKU_CONFIG2)) {
+		puts("dram_init: LPDDR4: 1GB\n");
+		/* ddr_init(&dram_timing_1gb); */
 		writel(0x2, MCU_BOOTROM_BASE_ADDR);
-	}
-	else
+	} else if (!gpio_get_value(SKU_CONFIG1) && !gpio_get_value(SKU_CONFIG2)) {
+		puts("dram_init: LPDDR4: 512MB\n");
+		/* ddr_init(&dram_timing_512mb); */
+		writel(0x1, MCU_BOOTROM_BASE_ADDR);
+	} else
 		puts("Unknown DDR type!!!\n");
 }
 
