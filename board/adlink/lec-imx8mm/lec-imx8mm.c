@@ -54,15 +54,14 @@ int board_early_init_f(void)
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
 
-#define FEC_RST_PAD IMX_GPIO_NR(4, 4)
+#define FEC_RST_PAD IMX_GPIO_NR(4, 25)
 static iomux_v3_cfg_t const fec1_rst_pads[] = {
-	IMX8MM_PAD_SAI1_RXD0_GPIO4_IO2 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	IMX8MM_PAD_SAI2_TXC_GPIO4_IO25 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static void setup_iomux_fec(void)
 {
-	imx_iomux_v3_setup_multiple_pads(fec1_rst_pads,
-					 ARRAY_SIZE(fec1_rst_pads));
+	imx_iomux_v3_setup_multiple_pads(fec1_rst_pads, ARRAY_SIZE(fec1_rst_pads));
 
 	gpio_request(FEC_RST_PAD, "fec1_rst");
 	gpio_direction_output(FEC_RST_PAD, 0);
@@ -89,7 +88,7 @@ static int setup_fec(void)
 		return -EINVAL;
 	}
 
-	ret = dm_i2c_probe(bus, 0x70, 0, &i2c_dev);//GPIO expander address
+	ret = dm_i2c_probe(bus, 0x70, 0, &i2c_dev); // GPIO expander address
 	if (ret) {
 		printf("%s: Can't find device id 0x70\n", __func__);
 		return -EINVAL;
