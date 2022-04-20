@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright 2022 ADLink
+ */
+
+/dts-v1/;
+
+#include "lec8mm.dtsi"
+
+/ {
+	model = "ADLink lec-imx8mm LPDDR4 2GB SOM";
+	compatible = "fsl,imx8mm-evk", "fsl,imx8mm", "adlink,lec-imx8mm", "adlink,imx8m";
+
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0x0 0x40000000 0 0x80000000>,
+			<0x1 0x00000000 0 0x00000000>;
+	};
+};
