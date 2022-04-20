@@ -304,7 +304,7 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
 	return USB_INIT_DEVICE;
 }
 
-#endif
+#endif /* CONFIG_USB_TCPC */
 
 #define DISPMIX				9
 #define MIPI				10
@@ -313,7 +313,7 @@ int board_init(void)
 {
 	struct arm_smccc_res res;
 
-#ifdef CONFIG_USB_TCPC
+#if CONFIG_USB_TCPC
 	setup_typec();
 #endif
 
