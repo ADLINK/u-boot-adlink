@@ -90,6 +90,20 @@
 		compatible = "rohm,dh2228fv";
 		spi-max-frequency = <500000>;
 	};
+
+	can1: can@0 {
+		compatible = "microchip,mcp2517fd";
+		clocks = <&clk20m>;
+		gpio-controller;
+		interrupt-parent = <&gpio5>;
+		interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
+		microchip,clock-allways-on;
+		microchip,clock-out-div = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_can1_int>;
+		reg = <0>;
+		spi-max-frequency = <2000000>;
+	};
 };
 
 &i2c1 {
@@ -379,6 +393,12 @@
 	pinctrl_ecspi2_cs: ecspi2cs {
 		fsl,pins = <
 			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13		0x40000
+		>;
+	};
+
+	pinctrl_can1_int: can1intgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_I2C4_SDA_GPIO5_IO21		0x1c4 /* check 0x1c4 */
 		>;
 	};
 
