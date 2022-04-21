@@ -7,7 +7,7 @@
 
 #include <dt-bindings/usb/pd.h>
 #include <dt-bindings/net/ti-dp83867.h>
-#include "imx8mp.dtsi"
+#include "imx8mm.dtsi"
 
 / {
 	chosen {
@@ -40,6 +40,7 @@
 		off-on-delay-us = <12000>;
 	};
 
+	/* No cbtl04gp (ch-x-switch)
 	cbtl04gp {
 		compatible = "nxp,cbtl04gp";
 		pinctrl-names = "default";
@@ -52,7 +53,7 @@
 				remote-endpoint = <&typec_con_ss>;
 			};
 		};
-	};
+	}; */
 };
 
 &fec1 {
@@ -92,8 +93,8 @@
 		spi-max-frequency = <500000>;
 	};
 
-	can1: can@0 {
-		compatible = "microchip,mcp2517fd";
+	can1: mcp2518fd@0 {
+		compatible = "microchip,mcp2518fd";
 		clocks = <&clk20m>;
 		gpio-controller;
 		interrupt-parent = <&gpio5>;
@@ -107,8 +108,9 @@
 	};
 };
 
+/* I2C_PM: PMIC(1v8) */
 &i2c1 {
-	clock-frequency = <100000>;
+	clock-frequency = <400000>;
 	pinctrl-names = "default", "gpio";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	pinctrl-1 = <&pinctrl_i2c1_gpio>;
@@ -118,8 +120,8 @@
 
 	pmic: pca9450@25 {
 		reg = <0x25>;
-		compatible = "nxp,pca9450c";
-		/* PMIC PCA9450 PMIC_nINT GPIO1_IO3 */
+		compatible = "nxp,pca9450a";
+		/* PMIC: PCA9450: PMIC_nINT GPIO1_IO3 */
 		pinctrl-0 = <&pinctrl_pmic>;
 		gpio_intr = <&gpio1 3 GPIO_ACTIVE_LOW>;
 
@@ -149,6 +151,15 @@
 				regulator-boot-on;
 				regulator-always-on;
 				regulator-ramp-delay = <3125>;
+			};
+
+			buck3_reg: regulator@2 {
+				reg = <2>;
+				regulator-compatible = "buck3";
+				regulator-min-microvolt = <600000>;
+				regulator-max-microvolt = <2187500>;
+				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			buck4_reg: regulator@3 {
@@ -220,10 +231,12 @@
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <3300000>;
 			};
+
 		};
 	};
 };
 
+/* I2C_GP: LCD(1v8), DSI to LVDS(1v8) */
 &i2c2 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default", "gpio";
@@ -233,17 +246,18 @@
 	sda-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 
+	/* No PTN5110 USB PD
 	ptn5110: tcpc@50 {
 		compatible = "nxp,ptn5110";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_typec>;
+		pinctrl-0 = <&pinctrl_typec1>;
 		reg = <0x50>;
 		interrupt-parent = <&gpio4>;
 		interrupts = <19 8>;
 
 		port {
-			typec_dr_sw: endpoint {
-				remote-endpoint = <&usb3_drd_sw>;
+			typec1_dr_sw: endpoint {
+				remote-endpoint = <&usb1_drd_sw>;
 			};
 		};
 
@@ -271,9 +285,11 @@
 				};
 			};
 		};
-	};
+	}; */
+	
 };
 
+/* I2C_CAM1: CAM1(1v8), TPM(1.8), RTC(3v3), HDMI(3.3) PCIe Clock Gen */
 &i2c3 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default", "gpio";
@@ -284,27 +300,7 @@
 	status = "okay";
 };
 
-&i2c5 {
-	clock-frequency = <100000>;
-	pinctrl-names = "default", "gpio";
-	pinctrl-0 = <&pinctrl_i2c5>;
-	pinctrl-1 = <&pinctrl_i2c5_gpio>;
-	scl-gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>;
-	sda-gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>;
-	status = "okay";
-};
-
-&i2c6 {
-	clock-frequency = <100000>;
-	pinctrl-names = "default", "gpio";
-	pinctrl-0 = <&pinctrl_i2c6>;
-	pinctrl-1 = <&pinctrl_i2c6_gpio>;
-	scl-gpios = <&gpio3 28 GPIO_ACTIVE_HIGH>;
-	sda-gpios = <&gpio3 29 GPIO_ACTIVE_HIGH>;
-	status = "okay";
-};
-
-&lcdif1 {
+&lcdif {
 	status = "okay";
 };
 
@@ -316,42 +312,33 @@
 	status = "okay";
 };
 
+/* debug console */
 &uart2 {
-	/* console */
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_uart2>;
 	status = "okay";
 };
 
-&usb3_phy0 {
-	status = "okay";
-};
-
-&usb_dwc3_0 {
+/* usb otg for serial download mode */
+&usbotg1 {
 	dr_mode = "otg";
 	hnp-disable;
 	srp-disable;
 	adp-disable;
 	usb-role-switch;
-	role-switch-default-mode = "none";
+	disable-over-current;
+	samsung,picophy-pre-emp-curr-control = <3>;
+	samsung,picophy-dc-vol-level-adjust = <7>;
 	status = "okay";
 
 	port {
-		usb3_drd_sw: endpoint {
-			remote-endpoint = <&typec_dr_sw>;
+		usb1_drd_sw: endpoint {
+			remote-endpoint = <&typec1_dr_sw>;
 		};
 	};
 };
 
-&usb3_phy1 {
-	status = "okay";
-};
-
-&usb_dwc3_1 {
-	dr_mode = "host";
-	status = "okay";
-};
-
+/* SDCard */
 &usdhc2 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
@@ -363,6 +350,7 @@
 	status = "okay";
 };
 
+/* EMMC */
 &usdhc3 {
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc3>;
@@ -425,107 +413,76 @@
 
 	pinctrl_gpio_led: gpioledgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_NAND_READY_B__GPIO3_IO16	0x19
+			MX8MM_IOMUXC_NAND_READY_B_GPIO3_IO16	0x19
 		>;
 	};
 
 	pinctrl_i2c1: i2c1grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_I2C1_SCL__I2C1_SCL		0x400001c3
-			MX8MP_IOMUXC_I2C1_SDA__I2C1_SDA		0x400001c3
-		>;
-	};
-
-	pinctrl_i2c2: i2c2grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_I2C2_SCL__I2C2_SCL			0x400001c3
-			MX8MP_IOMUXC_I2C2_SDA__I2C2_SDA			0x400001c3
-		>;
-	};
-
-	pinctrl_i2c3: i2c3grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_I2C3_SCL__I2C3_SCL			0x400001c3
-			MX8MP_IOMUXC_I2C3_SDA__I2C3_SDA			0x400001c3
-		>;
-	};
-
-	pinctrl_i2c5: i2c5grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXD0__I2C5_SCL		0x400001c3
-			MX8MP_IOMUXC_SAI5_MCLK__I2C5_SDA		0x400001c3
-		>;
-	};
-
-	pinctrl_i2c6: i2c6grp {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXFS__I2C6_SCL		0x400001c3
-			MX8MP_IOMUXC_SAI5_RXC__I2C6_SDA			0x400001c3
+			MX8MM_IOMUXC_I2C1_SCL_I2C1_SCL			0x400001c3
+			MX8MM_IOMUXC_I2C1_SDA_I2C1_SDA			0x400001c3
 		>;
 	};
 
 	pinctrl_i2c1_gpio: i2c1grp-gpio {
 		fsl,pins = <
-			MX8MP_IOMUXC_I2C1_SCL__GPIO5_IO14        	0x1c3
-			MX8MP_IOMUXC_I2C1_SDA__GPIO5_IO15        	0x1c3
+			MX8MM_IOMUXC_I2C1_SCL_GPIO5_IO14        	0x1c3
+			MX8MM_IOMUXC_I2C1_SDA_GPIO5_IO15        	0x1c3
+		>;
+	};
+
+	pinctrl_i2c2: i2c2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_I2C2_SCL_I2C2_SCL			0x400001c3
+			MX8MM_IOMUXC_I2C2_SDA_I2C2_SDA			0x400001c3
 		>;
 	};
 
 	pinctrl_i2c2_gpio: i2c2grp-gpio {
 		fsl,pins = <
-			MX8MP_IOMUXC_I2C2_SCL__GPIO5_IO16        	0x1c3
-			MX8MP_IOMUXC_I2C2_SDA__GPIO5_IO17        	0x1c3
+			MX8MM_IOMUXC_I2C2_SCL_GPIO5_IO16        	0x1c3
+			MX8MM_IOMUXC_I2C2_SDA_GPIO5_IO17        	0x1c3
+		>;
+	};
+
+	pinctrl_i2c3: i2c3grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_I2C3_SCL_I2C3_SCL			0x400001c3
+			MX8MM_IOMUXC_I2C3_SDA_I2C3_SDA			0x400001c3
 		>;
 	};
 
 	pinctrl_i2c3_gpio: i2c3grp-gpio {
 		fsl,pins = <
-			MX8MP_IOMUXC_I2C3_SCL__GPIO5_IO18        	0x1c3
-			MX8MP_IOMUXC_I2C3_SDA__GPIO5_IO19        	0x1c3
+			MX8MM_IOMUXC_I2C3_SCL_GPIO5_IO18        	0x1c3
+			MX8MM_IOMUXC_I2C3_SDA_GPIO5_IO19        	0x1c3
 		>;
 	};
 
-	pinctrl_i2c5_gpio: i2c5grp-gpio {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXD0__I2C5_SCL			0x1c3
-			MX8MP_IOMUXC_SAI5_MCLK__I2C5_SDA			0x1c3
-		>;
-	};
-
-	pinctrl_i2c6_gpio: i2c6grp-gpio {
-		fsl,pins = <
-			MX8MP_IOMUXC_SAI5_RXFS__I2C6_SCL			0x1c3
-			MX8MP_IOMUXC_SAI5_RXC__I2C6_SDA				0x1c3
-		>;
-	};
-
+	/* LCD0_VDD_EN */
 	pinctrl_mipi_dsi_en: mipi_dsi_en {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08	0x16
+			MX8MM_IOMUXC_GPIO1_IO08_GPIO1_IO8		0x19
 		>;
 	};
 
-	pinctrl_pmic: pmicirq {
+	/* PMIC_nINT */
+	pinctrl_pmic: pmicirqgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO03__GPIO1_IO03	0x41
+			MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3		0x141
 		>;
 	};
 
-	pinctrl_typec: typec1grp {
+	/* FIX ME - no PTN5110NHQZ USB PD IC (ONLY MCP USB251xBi USB Switch) */
+	pinctrl_typec1: typec1grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_TXD7__GPIO4_IO19	0x1c4
+			MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11	0x159
 		>;
 	};
 
-	pinctrl_typec_mux: typec1muxgrp {
+	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmcgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_SAI1_MCLK__GPIO4_IO20	0x16
-		>;
-	};
-
-	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmc {
-		fsl,pins = <
-			MX8MP_IOMUXC_SD2_RESET_B__GPIO2_IO19	0x41
+			MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x41
 		>;
 	};
 
