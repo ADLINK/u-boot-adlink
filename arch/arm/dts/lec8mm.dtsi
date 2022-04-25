@@ -54,6 +54,13 @@
 			};
 		};
 	}; */
+
+	/* fixed clock dedicated to SPI CAN controller */
+	clk20m: oscillator {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <20000000>;
+	};
 };
 
 &fec1 {
@@ -329,13 +336,16 @@
 	disable-over-current;
 	samsung,picophy-pre-emp-curr-control = <3>;
 	samsung,picophy-dc-vol-level-adjust = <7>;
+	vbus-supply = <&reg_usb_otg1_vbus>;
 	status = "okay";
 
+	/*
 	port {
 		usb1_drd_sw: endpoint {
 			remote-endpoint = <&typec1_dr_sw>;
 		};
 	};
+	*/
 };
 
 /* SDCard */
@@ -473,11 +483,23 @@
 		>;
 	};
 
-	/* FIX ME - no PTN5110NHQZ USB PD IC (ONLY MCP USB251xBi USB Switch) */
+	/* FIX ME - no PTN5110NHQZ USB PD IC (ONLY MCP USB251xBi USB Switch)
 	pinctrl_typec1: typec1grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SD1_STROBE_GPIO2_IO11	0x159
 		>;
+	}; */
+
+	reg_usb_otg1_vbus: regulator-usb-otg1 {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		/* Verdin USB1_EN */
+		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_reg_usb1_en>;
+		regulator-name = "usb_otg1_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
 	};
 
 	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmcgrp {
@@ -497,6 +519,12 @@
 		fsl,pins = <
 			/* FIXME: suppose to be USB1_VBUS pin */
 			MX8MM_IOMUXC_GPIO1_IO14_USB2_OTG_PWR	0x19
+		>;
+	};
+
+	pinctrl_reg_usb1_en: regusb1engrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12	0x184		/* SODIMM 155 */
 		>;
 	};
 
