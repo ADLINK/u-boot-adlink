@@ -27,6 +27,7 @@
 		};
 	};
 
+	/* SDCard vmmc */
 	reg_usdhc2_vmmc: regulator-usdhc2 {
 		compatible = "regulator-fixed";
 		pinctrl-names = "default";
@@ -502,6 +503,7 @@
 		regulator-max-microvolt = <5000000>;
 	};
 
+	/* SD2_nRST (SDIO_PWR_EN) */
 	pinctrl_reg_usdhc2_vmmc: regusdhc2vmmcgrp {
 		fsl,pins = <
 			MX8MM_IOMUXC_SD2_RESET_B_GPIO2_IO19	0x41
