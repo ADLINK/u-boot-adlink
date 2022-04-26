@@ -100,7 +100,7 @@
 		spi-max-frequency = <500000>;
 	};
 
-	can1: can@0 {
+	can1: mcp2518fd@0 {
 		compatible = "microchip,mcp2518fd";
 		clocks = <&clk20m>;
 		gpio-controller;
