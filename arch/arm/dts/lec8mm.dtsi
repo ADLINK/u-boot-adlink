@@ -76,10 +76,11 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
+		/* DM9119INX-1A_DAVICOM */
 		ethphy0: ethernet-phy@0 {
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <0>;
-			/* MX8MM_IOMUX_SAI2_TXC_GPIO4_IO25 */
+			/* MX8MM_IOMUX_SAI2_TXC_GPIO4_IO25 (ENET_nRST) */
 			reset-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;
 			reset-assert-us = <10000>;
 		};
