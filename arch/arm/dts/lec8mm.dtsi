@@ -332,7 +332,7 @@
 	}; */
 };
 
-/* I2C_CAM1: CAM1(1v8), TPM(1.8), RTC(3v3), HDMI(3.3) PCIe Clock Gen */
+/* I2C_CAM1: CAM1(1v8), TPM(1.8), PCIe ClockGen(1v8), RTC(3v3), HDMI(3.3) */
 &i2c3 {
 	clock-frequency = <100000>;
 	pinctrl-names = "default", "gpio";
@@ -341,6 +341,30 @@
 	scl-gpios = <&gpio5 18 GPIO_ACTIVE_HIGH>;
 	sda-gpios = <&gpio5 19 GPIO_ACTIVE_HIGH>;
 	status = "okay";
+
+	/* RTC: PCF8563BS - FIXME-Po */
+	rtc: pcf8563bs@51 {
+		reg = <0x51>;
+		compatible = "nxp,sn65dsi84";
+	};
+
+	/* PCIe ClockGen: 9FGV0241AKILF_RENESAS */
+	clkgen: 9fgv0241@6a {
+		reg = <0x2d>;
+		compatible = "ren,9fgv0241";
+	};
+
+	/* TPM: ST33HTPH2X32AHD5 - FIXME-Po */
+	tpm: st33htph77@2e {
+		reg = <0x2e>;
+		compatible = "st,st33htph";
+		/* MX8MM_IOMUXC_SD1_DATA5_GPIO2_IO7 (TPM_INT_N) */
+		interrupt-parent = <&gpio2>;
+		interrupts = <7 IRQ_TYPE_EDGE_FALLING>;
+		/* MX8MM_IOMUXC_NAND_DQS_GPIO3_IO14 (TPM_RST#) */
+		reset-gpios = <&gpio3 14 GPIO_ACTIVE_LOW>;
+		reset-assert-us = <10000>;
+	};
 };
 
 &lcdif {
@@ -554,7 +578,7 @@
 
 	pinctrl_usb1_vbus: usb1grp {
 		fsl,pins = <
-			/* FIXME: suppose to be USB1_VBUS pin */
+			/* FIXME-Po: suppose to be USB1_VBUS pin */
 			MX8MM_IOMUXC_GPIO1_IO14_USB2_OTG_PWR	0x19
 		>;
 	};
