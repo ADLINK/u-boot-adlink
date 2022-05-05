@@ -64,29 +64,6 @@
 	};
 };
 
-&fec1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_fec1>;
-	phy-mode = "rgmii-id";
-	phy-handle = <&ethphy0>;
-	fsl,magic-packet;
-	status = "okay";
-
-	mdio {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		/* DM9119INX-1A_DAVICOM */
-		ethphy0: ethernet-phy@0 {
-			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <0>;
-			/* MX8MM_IOMUX_SAI2_TXC_GPIO4_IO25 (ENET_nRST) */
-			reset-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <10000>;
-		};
-	};
-};
-
 &ecspi2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -114,6 +91,29 @@
 		pinctrl-0 = <&pinctrl_can1_int>;
 		reg = <0>;
 		spi-max-frequency = <2000000>;
+	};
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec1>;
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethphy0>;
+	fsl,magic-packet;
+	status = "okay";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* DM9119INX-1A_DAVICOM */
+		ethphy0: ethernet-phy@0 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <0>;
+			/* MX8MM_IOMUX_SAI2_TXC_GPIO4_IO25 (ENET_nRST) */
+			reset-gpios = <&gpio4 25 GPIO_ACTIVE_LOW>;
+			reset-assert-us = <10000>;
+		};
 	};
 };
 
