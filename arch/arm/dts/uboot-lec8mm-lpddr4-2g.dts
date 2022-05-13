@@ -8,7 +8,7 @@
 #include "lec8mm.dtsi"
 
 / {
-	model = "ADLink lec-imx8mm LPDDR4 2GB SOM";
+	model = "ADLINK lec-imx8mm LPDDR4 2GB SOM";
 	compatible = "fsl,imx8mm-evk", "fsl,imx8mm", "adlink,lec-imx8mm", "adlink,imx8m";
 
 	memory@40000000 {
