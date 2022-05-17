@@ -41,10 +41,10 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 {
 	switch (boot_dev_spl) {
 	case SD2_BOOT:
-	case MMC2_BOOT:
+	case MMC2_BOOT: /* SDCard */
 		return BOOT_DEVICE_MMC1;
 	case SD3_BOOT:
-	case MMC3_BOOT:
+	case MMC3_BOOT: /* eMMC */
 		return BOOT_DEVICE_MMC2;
 	case QSPI_BOOT:
 		return BOOT_DEVICE_NOR;
@@ -121,13 +121,13 @@ void spl_dram_init(void)
  *  emmc SDIO3
  *  sdcard SDIO2
  ******************************/
-#define USDHC2_CD_GPIO	IMX_GPIO_NR(2, 12)
-#define USDHC2_PWR_GPIO IMX_GPIO_NR(5, 20)
+#define USDHC2_CD_GPIO  IMX_GPIO_NR(1, 15) /* GPIO1_IO15 */
+#define USDHC2_PWR_GPIO IMX_GPIO_NR(2, 19) /* SD2_RESET_B / GPIO2_IO19 */
 
-#define USDHC_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE |PAD_CTL_PE | \
-			 PAD_CTL_FSEL2)
+#define USDHC_PAD_CTRL (PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE |PAD_CTL_PE | PAD_CTL_FSEL2)
 #define USDHC_GPIO_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_DSE1)
 
+/* eMMC */
 static iomux_v3_cfg_t const usdhc3_pads[] = {
 	IMX8MM_PAD_NAND_WE_B_USDHC3_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	IMX8MM_PAD_NAND_WP_B_USDHC3_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -141,6 +141,7 @@ static iomux_v3_cfg_t const usdhc3_pads[] = {
 	IMX8MM_PAD_NAND_CLE_USDHC3_DATA7 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 };
 
+/* SDCard */
 static iomux_v3_cfg_t const usdhc2_pads[] = {
 	IMX8MM_PAD_SD2_CLK_USDHC2_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	IMX8MM_PAD_SD2_CMD_USDHC2_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -148,12 +149,13 @@ static iomux_v3_cfg_t const usdhc2_pads[] = {
 	IMX8MM_PAD_SD2_DATA1_USDHC2_DATA1 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	IMX8MM_PAD_SD2_DATA2_USDHC2_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	IMX8MM_PAD_SD2_DATA3_USDHC2_DATA3 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
-	IMX8MM_PAD_I2C4_SCL_GPIO5_IO20 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
+	IMX8MM_PAD_SD2_RESET_B_GPIO2_IO19 | MUX_PAD_CTRL(USDHC_GPIO_PAD_CTRL),
 };
 
 /*
  * The evk board uses DAT3 to detect CD card plugin,
  * in u-boot we mux the pin to GPIO when doing board_mmc_getcd.
+ *
  * on SMARC SOM, GPIO1_IO15_SD2_CD# (default) / SD2_nCD (not connected)
  * are selected using a 0ohm to route to SDIO_CD# smarc interface.
  * i.e. IMX8MM_PAD_GPIO1_IO15_GPIO1_IO15 or IMX8MM_PAD_SD2_CD_B_GPIO2_IO12
@@ -172,8 +174,8 @@ int board_mmc_init(struct bd_info *bis)
 	/*
 	 * According to the board_mmc_init() the following map is done:
 	 * (U-Boot device node)    (Physical Port)
-	 * mmc0                    USDHC1
-	 * mmc1                    USDHC2
+	 * mmc0                    USDHC2
+	 * mmc1                    USDHC3
 	 */
 	for (i = 0; i < CONFIG_SYS_FSL_USDHC_NUM; i++) {
 		switch (i) {
