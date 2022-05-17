@@ -388,24 +388,17 @@
 
 /* usb otg for serial download mode */
 &usbotg1 {
-	dr_mode = "otg";
-	hnp-disable;
-	srp-disable;
-	adp-disable;
-	usb-role-switch;
-	disable-over-current;
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+/* usb host for usb-hub co-lay */
+&usbotg2 {
+	dr_mode = "host";
 	samsung,picophy-pre-emp-curr-control = <3>;
 	samsung,picophy-dc-vol-level-adjust = <7>;
 	vbus-supply = <&reg_usb_otg1_vbus>;
 	status = "okay";
-
-	/*
-	port {
-		usb1_drd_sw: endpoint {
-			remote-endpoint = <&typec1_dr_sw>;
-		};
-	};
-	*/
 };
 
 /* SDCard */
@@ -553,7 +546,6 @@
 	reg_usb_otg1_vbus: regulator-usb-otg1 {
 		compatible = "regulator-fixed";
 		enable-active-high;
-		/* Verdin USB1_EN */
 		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_reg_usb1_en>;
